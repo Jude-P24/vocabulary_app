@@ -4,8 +4,264 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Practice</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #game, #question-container { display: none; }
+        .hidden { display: none; }
+        #timer { font-weight: bold; }
+    </style>
 </head>
 <body>
     <h1>Practice</h1>
+
+    <div id="setup">
+        <div>
+            <label>
+                Mode:
+                <select id="mode-select">
+                    <option value="jp-en">Japanese to English</option>
+                    <option value="en-jp">English to Japanese</option>
+                </select>
+            </label>
+            <label>
+                Conversion:
+                <select id="conversion-select">
+                    <option value="kana">Kana</option>
+                    <option value="kanji">Kanji</option>
+                </select>
+            </label>
+        </div>
+        <div>
+            <label>
+                Difficulty:
+                <select id="difficulty-select">
+                    <option value="easy">Easy</option>
+                    <option value="normal">Normal</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </label>
+        </div>
+        <p>Best Score: <span id="best-score">0</span></p>
+        <button id="start-btn">Start Game</button>
+    </div>
+
+    <div id="game">
+        <p>Lives: <span id="lives"></span> | Score: <span id="score">0</span> <span id="timer" class="hidden">| Time: <span id="time-left"></span></span></p>
+        <div id="question-container">
+            <p id="question"></p>
+            <form id="answer-form">
+                <input type="text" id="answer-input" autocomplete="off" required>
+                <button type="submit">Submit</button>
+            </form>
+            <p id="feedback"></p>
+        </div>
+        <div id="game-over" class="hidden">
+            <p id="final-score"></p>
+            <button id="restart-btn">Restart</button>
+        </div>
+    </div>
+
+    <script>
+    const modeSelect = document.getElementById('mode-select');
+    const conversionSelect = document.getElementById('conversion-select');
+    const difficultySelect = document.getElementById('difficulty-select');
+    const startBtn = document.getElementById('start-btn');
+    const gameDiv = document.getElementById('game');
+    const questionContainer = document.getElementById('question-container');
+    const questionEl = document.getElementById('question');
+    const answerForm = document.getElementById('answer-form');
+    const answerInput = document.getElementById('answer-input');
+    const feedbackEl = document.getElementById('feedback');
+    const livesEl = document.getElementById('lives');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const timeLeftEl = document.getElementById('time-left');
+    const bestScoreEl = document.getElementById('best-score');
+    const gameOverDiv = document.getElementById('game-over');
+    const finalScoreEl = document.getElementById('final-score');
+    const restartBtn = document.getElementById('restart-btn');
+
+    let vocabList = [];
+    let shuffled = [];
+    let index = 0;
+    let lives = 3;
+    let score = 0;
+    let bestScore = 0;
+    let timer = null;
+    let timeLeft = 10;
+    let hardMode = false;
+
+    function loadVocab() {
+        const data = localStorage.getItem('vocabList');
+        if (data) {
+            try {
+                vocabList = JSON.parse(data);
+            } catch (e) {
+                vocabList = [];
+            }
+        }
+    }
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startGame() {
+        loadVocab();
+        const mode = modeSelect.value;
+        const conv = conversionSelect.value;
+        const diff = difficultySelect.value;
+
+        if (diff === 'easy') lives = 5; else lives = 3;
+        hardMode = diff === 'hard';
+        score = 0;
+        index = 0;
+        scoreEl.textContent = score;
+        livesEl.textContent = lives;
+        feedbackEl.textContent = '';
+        answerInput.value = '';
+        answerInput.focus();
+        gameOverDiv.classList.add('hidden');
+        timerEl.classList.toggle('hidden', !hardMode);
+        if (hardMode) timeLeftEl.textContent = 10;
+
+        shuffled = vocabList.filter(v => {
+            if (mode === 'jp-en') {
+                if (conv === 'kana') return v.hiragana || v.katakana;
+                if (conv === 'kanji') return v.kanji;
+            } else {
+                if (conv === 'kana') return v.hiragana || v.katakana;
+                if (conv === 'kanji') return v.kanji;
+            }
+            return false;
+        });
+        shuffled = shuffle(shuffled.slice());
+
+        if (shuffled.length === 0) {
+            alert('No vocabulary available for this mode.');
+            return;
+        }
+
+        document.getElementById('setup').style.display = 'none';
+        gameDiv.style.display = 'block';
+        questionContainer.style.display = 'block';
+
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        if (index >= shuffled.length) {
+            endGame();
+            return;
+        }
+        const item = shuffled[index];
+        const mode = modeSelect.value;
+        const conv = conversionSelect.value;
+
+        if (hardMode) {
+            clearInterval(timer);
+            timeLeft = 10;
+            timeLeftEl.textContent = timeLeft;
+            timer = setInterval(() => {
+                timeLeft--;
+                timeLeftEl.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleAnswer('');
+                }
+            }, 1000);
+        }
+
+        if (mode === 'jp-en') {
+            if (conv === 'kana') {
+                questionEl.textContent = item.hiragana || item.katakana;
+            } else {
+                questionEl.textContent = item.kanji;
+            }
+        } else {
+            questionEl.textContent = item.english;
+        }
+        answerInput.value = '';
+        answerInput.focus();
+    }
+
+    function handleAnswer(value) {
+        if (hardMode) clearInterval(timer);
+        const item = shuffled[index];
+        const mode = modeSelect.value;
+        const conv = conversionSelect.value;
+        let correct = '';
+        if (mode === 'jp-en') {
+            correct = item.english.toLowerCase();
+        } else {
+            if (conv === 'kana') {
+                correct = item.hiragana ? item.hiragana : item.katakana;
+            } else {
+                correct = item.kanji;
+            }
+        }
+
+        let isCorrect = false;
+        if (mode === 'jp-en') {
+            isCorrect = value.trim().toLowerCase() === correct;
+        } else {
+            isCorrect = value.trim() === correct;
+        }
+
+        if (isCorrect) {
+            score++;
+            scoreEl.textContent = score;
+            feedbackEl.textContent = 'Correct!';
+        } else {
+            lives--;
+            livesEl.textContent = lives;
+            feedbackEl.textContent = `Wrong! Correct: ${correct}`;
+        }
+
+        index++;
+        if (lives <= 0) {
+            setTimeout(endGame, 1000);
+        } else {
+            setTimeout(() => {
+                feedbackEl.textContent = '';
+                nextQuestion();
+            }, 1000);
+        }
+    }
+
+    function endGame() {
+        clearInterval(timer);
+        questionContainer.style.display = 'none';
+        gameOverDiv.classList.remove('hidden');
+        finalScoreEl.textContent = `Game Over! Your score: ${score}`;
+        const storedBest = parseInt(localStorage.getItem('bestScore') || '0', 10);
+        if (score > storedBest) {
+            localStorage.setItem('bestScore', String(score));
+            bestScore = score;
+        } else {
+            bestScore = storedBest;
+        }
+        bestScoreEl.textContent = bestScore;
+    }
+
+    startBtn.addEventListener('click', startGame);
+
+    answerForm.addEventListener('submit', e => {
+        e.preventDefault();
+        handleAnswer(answerInput.value);
+    });
+
+    restartBtn.addEventListener('click', () => {
+        document.getElementById('setup').style.display = 'block';
+        gameDiv.style.display = 'none';
+    });
+
+    bestScore = parseInt(localStorage.getItem('bestScore') || '0', 10);
+    bestScoreEl.textContent = bestScore;
+    </script>
 </body>
 </html>
