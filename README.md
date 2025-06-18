@@ -7,8 +7,8 @@ This app runs entirely in your browser and does not require Node.js or any serve
 ## Usage
 
 1. Open `index.html` in a web browser.
-2. Fill in the form with the word's details (hiragana and English are required).
-3. Optionally provide a **theme** for the entry to categorise it.
+2. Fill in the form with the word's details (hiragana, English and theme are required).
+3. Provide a **theme** for the entry to categorise it.
 4. Click **Add Word** to save the entry.
 5. Use the **Filter by Theme** dropdown above the table to show only words from a specific theme.
 6. Use **Edit** or **Delete** in the table to modify your list.

@@ -15,12 +15,13 @@
 </head>
 <body>
     <h1>Japanese Vocabulary</h1>
+    <p><a href="practice.html">Practice</a></p>
     <form id="vocab-form">
         <label>Kanji: <input type="text" id="kanji"></label>
         <label>Hiragana*: <input type="text" id="hiragana" required></label>
         <label>Katakana: <input type="text" id="katakana"></label>
         <label>English*: <input type="text" id="english" required></label>
-        <label>Theme: <input type="text" id="theme"></label>
+        <label>Theme*: <input type="text" id="theme" required></label>
         <button type="submit" id="save-btn">Add Word</button>
         <button type="button" id="cancel-edit" style="display:none;">Cancel</button>
     </form>
@@ -135,8 +136,8 @@
             english: englishInput.value.trim(),
             theme: themeInput.value.trim()
         };
-        if (!entry.hiragana || !entry.english) {
-            alert('Hiragana and English are required');
+        if (!entry.hiragana || !entry.english || !entry.theme) {
+            alert('Hiragana, English and Theme are required');
             return;
         }
         if (editIndex !== null) {
