@@ -1,9 +1,219 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Hello World</title>
-  </head>
-  <body>
-    <h1>Hello, World!</h1>
-  </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese Vocabulary App</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form input { margin: 5px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .actions button { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Japanese Vocabulary</h1>
+    <form id="vocab-form">
+        <label>Kanji: <input type="text" id="kanji"></label>
+        <label>Hiragana*: <input type="text" id="hiragana" required></label>
+        <label>Katakana: <input type="text" id="katakana"></label>
+        <label>English*: <input type="text" id="english" required></label>
+        <label>Theme: <input type="text" id="theme"></label>
+        <button type="submit" id="save-btn">Add Word</button>
+        <button type="button" id="cancel-edit" style="display:none;">Cancel</button>
+    </form>
+
+    <label>Filter theme:
+        <select id="theme-filter">
+            <option value="all">All</option>
+        </select>
+    </label>
+
+    <h2>Vocabulary List</h2>
+    <table id="vocab-table">
+        <thead>
+            <tr>
+                <th>Kanji</th>
+                <th>Hiragana</th>
+                <th>Katakana</th>
+                <th>English</th>
+                <th>Theme</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button id="export-btn">Save to File</button>
+    <input type="file" id="import-file" style="display:none;" accept="application/json">
+    <button id="import-btn">Load from File</button>
+
+    <script>
+    let vocabList = [];
+    let editIndex = null;
+
+    const form = document.getElementById('vocab-form');
+    const kanjiInput = document.getElementById('kanji');
+    const hiraganaInput = document.getElementById('hiragana');
+    const katakanaInput = document.getElementById('katakana');
+    const englishInput = document.getElementById('english');
+    const themeInput = document.getElementById('theme');
+    const themeFilter = document.getElementById('theme-filter');
+    const saveBtn = document.getElementById('save-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit');
+    const tableBody = document.querySelector('#vocab-table tbody');
+    themeFilter.addEventListener('change', renderTable);
+
+    function loadFromLocal() {
+        const data = localStorage.getItem('vocabList');
+        if (data) {
+            try {
+                vocabList = JSON.parse(data);
+            } catch (e) {
+                vocabList = [];
+            }
+        }
+    }
+
+    function saveToLocal() {
+        localStorage.setItem('vocabList', JSON.stringify(vocabList));
+    }
+
+    function updateThemeOptions() {
+        const current = themeFilter.value;
+        themeFilter.innerHTML = '<option value="all">All</option>';
+        const themes = [...new Set(vocabList.map(v => v.theme).filter(t => t))];
+        themes.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            themeFilter.appendChild(opt);
+        });
+        if (themes.includes(current)) {
+            themeFilter.value = current;
+        } else {
+            themeFilter.value = 'all';
+        }
+    }
+
+    function renderTable() {
+        updateThemeOptions();
+        tableBody.innerHTML = '';
+        const filter = themeFilter.value;
+        vocabList.forEach((item, index) => {
+            if (filter !== 'all' && item.theme !== filter) return;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.kanji || ''}</td>
+                <td>${item.hiragana}</td>
+                <td>${item.katakana || ''}</td>
+                <td>${item.english}</td>
+                <td>${item.theme || ''}</td>
+                <td class="actions">
+                    <button data-index="${index}" class="edit-btn">Edit</button>
+                    <button data-index="${index}" class="delete-btn">Delete</button>
+                </td>`;
+            tableBody.appendChild(row);
+        });
+    }
+
+    function resetForm() {
+        form.reset();
+        editIndex = null;
+        saveBtn.textContent = 'Add Word';
+        cancelEditBtn.style.display = 'none';
+    }
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+        const entry = {
+            kanji: kanjiInput.value.trim(),
+            hiragana: hiraganaInput.value.trim(),
+            katakana: katakanaInput.value.trim(),
+            english: englishInput.value.trim(),
+            theme: themeInput.value.trim()
+        };
+        if (!entry.hiragana || !entry.english) {
+            alert('Hiragana and English are required');
+            return;
+        }
+        if (editIndex !== null) {
+            vocabList[editIndex] = entry;
+        } else {
+            vocabList.push(entry);
+        }
+        saveToLocal();
+        renderTable();
+        resetForm();
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+        resetForm();
+    });
+
+    tableBody.addEventListener('click', event => {
+        if (event.target.classList.contains('delete-btn')) {
+            const index = event.target.getAttribute('data-index');
+            vocabList.splice(index, 1);
+            saveToLocal();
+            renderTable();
+        }
+        if (event.target.classList.contains('edit-btn')) {
+            const index = event.target.getAttribute('data-index');
+            const item = vocabList[index];
+            kanjiInput.value = item.kanji || '';
+            hiraganaInput.value = item.hiragana;
+            katakanaInput.value = item.katakana || '';
+            englishInput.value = item.english;
+            themeInput.value = item.theme || '';
+            editIndex = index;
+            saveBtn.textContent = 'Save';
+            cancelEditBtn.style.display = 'inline';
+        }
+    });
+
+    document.getElementById('export-btn').addEventListener('click', () => {
+        const dataStr = JSON.stringify(vocabList, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'vocabulary.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    const importFileInput = document.getElementById('import-file');
+    document.getElementById('import-btn').addEventListener('click', () => {
+        importFileInput.click();
+    });
+
+    importFileInput.addEventListener('change', () => {
+        const file = importFileInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (Array.isArray(data)) {
+                    vocabList = data;
+                    saveToLocal();
+                    renderTable();
+                } else {
+                    alert('Invalid file format');
+                }
+            } catch (err) {
+                alert('Failed to parse file');
+            }
+        };
+        reader.readAsText(file);
+        importFileInput.value = '';
+    });
+
+    loadFromLocal();
+    renderTable();
+    </script>
+</body>
 </html>
