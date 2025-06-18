@@ -20,9 +20,16 @@
         <label>Hiragana*: <input type="text" id="hiragana" required></label>
         <label>Katakana: <input type="text" id="katakana"></label>
         <label>English*: <input type="text" id="english" required></label>
+        <label>Theme: <input type="text" id="theme"></label>
         <button type="submit" id="save-btn">Add Word</button>
         <button type="button" id="cancel-edit" style="display:none;">Cancel</button>
     </form>
+
+    <label>Filter by Theme:
+        <select id="theme-filter">
+            <option value="all">All</option>
+        </select>
+    </label>
 
     <h2>Vocabulary List</h2>
     <table id="vocab-table">
@@ -32,6 +39,7 @@
                 <th>Hiragana</th>
                 <th>Katakana</th>
                 <th>English</th>
+                <th>Theme</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -51,6 +59,8 @@
     const hiraganaInput = document.getElementById('hiragana');
     const katakanaInput = document.getElementById('katakana');
     const englishInput = document.getElementById('english');
+    const themeInput = document.getElementById('theme');
+    const themeFilter = document.getElementById('theme-filter');
     const saveBtn = document.getElementById('save-btn');
     const cancelEditBtn = document.getElementById('cancel-edit');
     const tableBody = document.querySelector('#vocab-table tbody');
@@ -72,19 +82,41 @@
 
     function renderTable() {
         tableBody.innerHTML = '';
-        vocabList.forEach((item, index) => {
+        const filter = themeFilter.value;
+        const list = filter === 'all' ? vocabList : vocabList.filter(i => i.theme === filter);
+        list.forEach((item) => {
+            const index = vocabList.indexOf(item);
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${item.kanji || ''}</td>
                 <td>${item.hiragana}</td>
                 <td>${item.katakana || ''}</td>
                 <td>${item.english}</td>
+                <td>${item.theme || ''}</td>
                 <td class="actions">
                     <button data-index="${index}" class="edit-btn">Edit</button>
                     <button data-index="${index}" class="delete-btn">Delete</button>
                 </td>`;
             tableBody.appendChild(row);
         });
+        updateFilterOptions();
+    }
+
+    function updateFilterOptions() {
+        const themes = [...new Set(vocabList.map(v => v.theme).filter(t => t))];
+        const current = themeFilter.value;
+        themeFilter.innerHTML = '<option value="all">All</option>';
+        themes.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            themeFilter.appendChild(opt);
+        });
+        if (current && themes.includes(current)) {
+            themeFilter.value = current;
+        } else {
+            themeFilter.value = 'all';
+        }
     }
 
     function resetForm() {
@@ -100,7 +132,8 @@
             kanji: kanjiInput.value.trim(),
             hiragana: hiraganaInput.value.trim(),
             katakana: katakanaInput.value.trim(),
-            english: englishInput.value.trim()
+            english: englishInput.value.trim(),
+            theme: themeInput.value.trim()
         };
         if (!entry.hiragana || !entry.english) {
             alert('Hiragana and English are required');
@@ -134,6 +167,7 @@
             hiraganaInput.value = item.hiragana;
             katakanaInput.value = item.katakana || '';
             englishInput.value = item.english;
+            themeInput.value = item.theme || '';
             editIndex = index;
             saveBtn.textContent = 'Save';
             cancelEditBtn.style.display = 'inline';
@@ -176,6 +210,10 @@
         };
         reader.readAsText(file);
         importFileInput.value = '';
+    });
+
+    themeFilter.addEventListener('change', () => {
+        renderTable();
     });
 
     loadFromLocal();
