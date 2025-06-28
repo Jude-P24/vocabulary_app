@@ -88,7 +88,7 @@
     let score = 0;
     let bestScore = 0;
     let timer = null;
-    let timeLeft = 10;
+    let timeLeft = 15;
     let hardMode = false;
 
     function loadVocab() {
@@ -127,7 +127,7 @@
         answerInput.focus();
         gameOverDiv.classList.add('hidden');
         timerEl.classList.toggle('hidden', !hardMode);
-        if (hardMode) timeLeftEl.textContent = 10;
+        if (hardMode) timeLeftEl.textContent = 15;
 
         shuffled = vocabList.filter(v => {
             if (mode === 'jp-en') {
@@ -164,7 +164,7 @@
 
         if (hardMode) {
             clearInterval(timer);
-            timeLeft = 10;
+            timeLeft = 15;
             timeLeftEl.textContent = timeLeft;
             timer = setInterval(() => {
                 timeLeft--;
@@ -237,7 +237,11 @@
         clearInterval(timer);
         questionContainer.style.display = 'none';
         gameOverDiv.classList.remove('hidden');
-        finalScoreEl.textContent = `Game Over! Your score: ${score}`;
+        if (lives > 0) {
+            finalScoreEl.textContent = `You win! Your score: ${score}`;
+        } else {
+            finalScoreEl.textContent = `Game Over! Your score: ${score}`;
+        }
         const storedBest = parseInt(localStorage.getItem('bestScore') || '0', 10);
         if (score > storedBest) {
             localStorage.setItem('bestScore', String(score));
