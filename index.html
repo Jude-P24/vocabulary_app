@@ -4,36 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Japanese Vocabulary App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        form input { margin: 5px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
+        body { font-family: Arial, sans-serif; }
         .actions button { margin-right: 5px; }
     </style>
 </head>
 <body>
-    <h1>Japanese Vocabulary</h1>
-    <p><a href="practice.html">Practice</a></p>
-    <form id="vocab-form">
-        <label>Kanji: <input type="text" id="kanji"></label>
-        <label>Hiragana*: <input type="text" id="hiragana" required></label>
-        <label>Katakana: <input type="text" id="katakana"></label>
-        <label>English*: <input type="text" id="english" required></label>
-        <label>Theme*: <input type="text" id="theme" required></label>
-        <button type="submit" id="save-btn">Add Word</button>
-        <button type="button" id="cancel-edit" style="display:none;">Cancel</button>
+<div class="container my-4">
+    <h1 class="mb-3">Japanese Vocabulary</h1>
+    <p><a href="practice.html" class="btn btn-link">Practice</a></p>
+    <form id="vocab-form" class="row g-2 align-items-end mb-3">
+        <div class="col-sm">
+            <label class="form-label">Kanji
+                <input type="text" class="form-control" id="kanji">
+            </label>
+        </div>
+        <div class="col-sm">
+            <label class="form-label">Hiragana*<input type="text" class="form-control" id="hiragana" required></label>
+        </div>
+        <div class="col-sm">
+            <label class="form-label">Katakana
+                <input type="text" class="form-control" id="katakana">
+            </label>
+        </div>
+        <div class="col-sm">
+            <label class="form-label">English*<input type="text" class="form-control" id="english" required></label>
+        </div>
+        <div class="col-sm">
+            <label class="form-label">Theme*<input type="text" class="form-control" id="theme" required></label>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary" id="save-btn">Add Word</button>
+            <button type="button" class="btn btn-secondary" id="cancel-edit" style="display:none;">Cancel</button>
+        </div>
     </form>
 
-    <label>Filter by Theme:
-        <select id="theme-filter">
-            <option value="all">All</option>
-        </select>
-    </label>
+    <div class="mb-3">
+        <label class="form-label">Filter by Theme:
+            <select id="theme-filter" class="form-select w-auto d-inline-block">
+                <option value="all">All</option>
+            </select>
+        </label>
+    </div>
 
     <h2>Vocabulary List</h2>
-    <table id="vocab-table">
+    <table id="vocab-table" class="table table-striped">
         <thead>
             <tr>
                 <th>Kanji</th>
@@ -47,9 +63,13 @@
         <tbody></tbody>
     </table>
 
-    <button id="export-btn">Save to File</button>
-    <input type="file" id="import-file" style="display:none;" accept="application/json">
-    <button id="import-btn">Load from File</button>
+    <div class="mb-3">
+        <button id="export-btn" class="btn btn-outline-primary">Save to File</button>
+        <input type="file" id="import-file" style="display:none;" accept="application/json">
+        <button id="import-btn" class="btn btn-outline-secondary">Load from File</button>
+    </div>
+
+</div>
 
     <script>
     let vocabList = [];
@@ -220,5 +240,6 @@
     loadFromLocal();
     renderTable();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
