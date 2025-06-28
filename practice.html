@@ -41,6 +41,12 @@
                 </select>
             </label>
         </div>
+        <div>
+            <label>
+                Themes:
+                <select id="theme-select" multiple size="5"></select>
+            </label>
+        </div>
         <p>Best Score: <span id="best-score">0</span></p>
         <button id="start-btn">Start Game</button>
     </div>
@@ -81,6 +87,7 @@
     const finalScoreEl = document.getElementById('final-score');
     const restartBtn = document.getElementById('restart-btn');
 
+    const themeSelect = document.getElementById("theme-select");
     let vocabList = [];
     let shuffled = [];
     let index = 0;
@@ -101,6 +108,17 @@
             }
         }
     }
+    function updateThemeOptions() {
+        const themes = [...new Set(vocabList.map(v => v.theme).filter(t => t))];
+        themeSelect.innerHTML = "";
+        themes.forEach(t => {
+            const opt = document.createElement("option");
+            opt.value = t;
+            opt.textContent = t;
+            themeSelect.appendChild(opt);
+        });
+    }
+
 
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -112,6 +130,7 @@
 
     function startGame() {
         loadVocab();
+        updateThemeOptions();
         const mode = modeSelect.value;
         const conv = conversionSelect.value;
         const diff = difficultySelect.value;
@@ -128,14 +147,19 @@
         gameOverDiv.classList.add('hidden');
         timerEl.classList.toggle('hidden', !hardMode);
         if (hardMode) timeLeftEl.textContent = 15;
+        const selectedThemes = Array.from(themeSelect.selectedOptions).map(o => o.value);
+        if (selectedThemes.length === 0) {
+            alert("Please select at least one theme.");
+            return;
+        }
 
-        shuffled = vocabList.filter(v => {
-            if (mode === 'jp-en') {
-                if (conv === 'kana') return v.hiragana || v.katakana;
-                if (conv === 'kanji') return v.kanji;
+        shuffled = vocabList.filter(v => selectedThemes.includes(v.theme)).filter(v => {
+            if (mode === "jp-en") {
+                if (conv === "kana") return v.hiragana || v.katakana;
+                if (conv === "kanji") return v.kanji;
             } else {
-                if (conv === 'kana') return v.hiragana || v.katakana;
-                if (conv === 'kanji') return v.kanji;
+                if (conv === "kana") return v.hiragana || v.katakana;
+                if (conv === "kanji") return v.kanji;
             }
             return false;
         });
@@ -264,6 +288,8 @@
         gameDiv.style.display = 'none';
     });
 
+    loadVocab();
+    updateThemeOptions();
     bestScore = parseInt(localStorage.getItem('bestScore') || '0', 10);
     bestScoreEl.textContent = bestScore;
     </script>
