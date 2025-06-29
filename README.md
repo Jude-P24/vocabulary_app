@@ -15,5 +15,5 @@ This app runs entirely in your browser and does not require Node.js or any serve
 7. Use **Save to File** to download your vocabulary as `vocabulary.json`.
 8. Use **Load from File** to import a previously saved file.
 
-9. Open `practice.html` to play a quiz game. Select one or more themes before starting.
+9. Open `practice.html` to play a quiz game. Use the theme checkboxes to choose which themes to practice with before starting.
 All data is also stored in the browser's `localStorage` so your vocabulary stays when you reload the page.
