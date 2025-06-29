@@ -47,9 +47,8 @@
             </div>
         </div>
         <div class="mb-2">
-            <label class="form-label">Themes
-                <select id="theme-select" class="form-select" multiple size="5"></select>
-            </label>
+            <label class="form-label d-block">Themes</label>
+            <div id="theme-checks" class="form-control" style="max-height:10rem;overflow-y:auto;"></div>
         </div>
         <p class="mb-1">Best Score: <span id="best-score">0</span></p>
         <button id="start-btn" class="btn btn-primary">Start Game</button>
@@ -93,7 +92,7 @@
     const finalScoreEl = document.getElementById('final-score');
     const restartBtn = document.getElementById('restart-btn');
 
-    const themeSelect = document.getElementById("theme-select");
+    const themeChecks = document.getElementById('theme-checks');
     let vocabList = [];
     let shuffled = [];
     let index = 0;
@@ -116,12 +115,22 @@
     }
     function updateThemeOptions() {
         const themes = [...new Set(vocabList.map(v => v.theme).filter(t => t))];
-        themeSelect.innerHTML = "";
+        themeChecks.innerHTML = '';
         themes.forEach(t => {
-            const opt = document.createElement("option");
-            opt.value = t;
-            opt.textContent = t;
-            themeSelect.appendChild(opt);
+            const div = document.createElement('div');
+            div.className = 'form-check';
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.className = 'form-check-input';
+            input.id = `theme-${t}`;
+            input.value = t;
+            const label = document.createElement('label');
+            label.className = 'form-check-label';
+            label.htmlFor = `theme-${t}`;
+            label.textContent = t;
+            div.appendChild(input);
+            div.appendChild(label);
+            themeChecks.appendChild(div);
         });
     }
 
@@ -153,7 +162,7 @@
         gameOverDiv.classList.add('hidden');
         timerEl.classList.toggle('hidden', !hardMode);
         if (hardMode) timeLeftEl.textContent = 15;
-        const selectedThemes = Array.from(themeSelect.selectedOptions).map(o => o.value);
+        const selectedThemes = Array.from(themeChecks.querySelectorAll('input:checked')).map(cb => cb.value);
         if (selectedThemes.length === 0) {
             alert("Please select at least one theme.");
             return;
